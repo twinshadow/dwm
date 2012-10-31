@@ -181,6 +181,7 @@ static void drawbar(Monitor *m);
 static void drawbars(void);
 static void drawsquare(Bool filled, Bool empty, Bool invert, unsigned long col[ColLast]);
 static void drawtext(const char *text, unsigned long col[ColLast], Bool invert);
+static void drawvline(unsigned long col[ColLast]);
 static void enternotify(XEvent *e);
 static void expose(XEvent *e);
 static void focus(Client *c);
@@ -722,15 +723,22 @@ dirtomon(int dir) {
 void
 drawbar(Monitor *m) {
 	int x;
-	unsigned int i, occ = 0, urg = 0;
-	unsigned long *col;
+	unsigned int i,
+		     n = 0, /* num of visible clients */
+		     occ = 0, /* max num of clients */
+		     urg = 0; /* max num of urgent clients */
+	unsigned long *col; /* color */
 	Client *c;
 
 	for(c = m->clients; c; c = c->next) {
 		occ |= c->tags;
 		if(c->isurgent)
 			urg |= c->tags;
+		if(ISVISIBLE(c))
+			n++;
 	}
+
+	/* draw the tags */
 	dc.x = 0;
 	for(i = 0; i < LENGTH(tags); i++) {
 		dc.w = TEXTW(tags[i]);
@@ -740,6 +748,8 @@ drawbar(Monitor *m) {
 		           occ & 1 << i, urg & 1 << i, col);
 		dc.x += dc.w;
 	}
+
+	/* draw the status */
 	dc.w = blw = TEXTW(m->ltsymbol);
 	drawtext(m->ltsymbol, dc.norm, False);
 	dc.x += dc.w;
@@ -755,16 +765,33 @@ drawbar(Monitor *m) {
 	}
 	else
 		dc.x = m->ww;
-	if((dc.w = dc.x - x) > bh) {
-		dc.x = x;
-		if(m->sel) {
-			col = m == selmon ? dc.sel : dc.norm;
-			drawtext(m->sel->name, col, False);
-			drawsquare(m->sel->isfixed, m->sel->isfloating, False, col);
+
+	/* Draw the clients */
+	col = (m == selmon) ? dc.sel : dc.norm;
+	dc.w = dc.x - x;
+	dc.x = x;
+
+	if(n > 0) {
+		dc.w /= n;
+		for(c = m->clients; c && !ISVISIBLE(c); c = c->next);
+		while(c) {
+			if(m->sel == c) {
+				drawtext(m->sel->name, dc.sel, False);
+				drawsquare(c->isfixed, c->isfloating, False, col);
+			} else {
+				drawtext(c->name, dc.norm, False);
+				drawsquare(c->isfixed, c->isfloating, False, col);
+			}
+			if(dc.x != x)
+				drawvline(dc.sel);
+			dc.x += dc.w;
+			for(c = c->next; c && !ISVISIBLE(c); c = c->next);
 		}
-		else
-			drawtext(NULL, dc.norm, False);
+	} else {
+		drawtext(NULL, dc.norm, False);
 	}
+
+	/* draw everything to the screen */
 	XCopyArea(dpy, dc.drawable, m->barwin, dc.gc, 0, 0, m->ww, bh, 0, 0);
 	XSync(dpy, False);
 }
@@ -814,6 +841,15 @@ drawtext(const char *text, unsigned long col[ColLast], Bool invert) {
 		XmbDrawString(dpy, dc.drawable, dc.font.set, dc.gc, x, y, buf, len);
 	else
 		XDrawString(dpy, dc.drawable, dc.gc, x, y, buf, len);
+}
+
+void
+drawvline(unsigned long col[ColLast]) {
+	XGCValues gcv;
+
+	gcv.foreground = col[ColBG];
+	XChangeGC(dpy, dc.gc, GCForeground, &gcv);
+	XDrawLine(dpy, dc.drawable, dc.gc, dc.x, dc.y, dc.x, dc.y + (dc.font.ascent + dc.font.descent + 2));
 }
 
 void
@@ -1327,8 +1363,7 @@ propertynotify(XEvent *e) {
 		}
 		if(ev->atom == XA_WM_NAME || ev->atom == netatom[NetWMName]) {
 			updatetitle(c);
-			if(c == c->mon->sel)
-				drawbar(c->mon);
+			drawbar(c->mon);
 		}
 		if(ev->atom == netatom[NetWMWindowType])
 			updatewindowtype(c);
@@ -2183,3 +2218,4 @@ main(int argc, char *argv[]) {
 	XCloseDisplay(dpy);
 	return EXIT_SUCCESS;
 }
+/** @file */
