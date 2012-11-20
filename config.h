@@ -144,7 +144,7 @@ static Key keys[] = {
 	{ MODKEY|ControlMask,           XK_x,      spawn,          SHCMD("mpc stop") },
 	{ MODKEY|ControlMask,           XK_z,      spawn,          SHCMD("mpc toggle") },
 	{ MODKEY|ShiftMask,             XK_v,      spawn,          SHCMD("gvim") },
-	{ MODKEY|ShiftMask,             XK_l,      spawn,          TERMCMD("xtrlock") },
+	{ MODKEY|ShiftMask,             XK_l,      spawn,          TERMCMD("lock-blank.sh") },
 /*	{ MODKEY|ShiftMask,             XK_space,  spawn,          SHCMD("bmark=$(cat ${HOME}/.config/surfraw/bookmarks | cut -d\\  -f1 | dmenu) && urxvt -e sh -c \"surfraw ${bmark}\"") },*/
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
 };
