@@ -32,6 +32,7 @@ static const Rule rules[] = {
 	{ "Firefox",   NULL,       NULL,       1 << 8,       False,       -1 },
 	{ "Uzbl-core", NULL,       NULL,       0,            True,        -1 },
 	{ "Gvim",      NULL,       NULL,       0,            True,        -1 },
+	{ "pinentry",  NULL,       NULL,       0,            True,        -1 },
 };
 
 /* Tag walking */
@@ -138,7 +139,7 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_m,      spawn,          TERMCMD("sleep 0.01; ncmpcpp") },
 	{ MODKEY|ShiftMask,             XK_u,      spawn,          TERMCMD("mutt -y") },
 	{ MODKEY|ShiftMask,             XK_e,      spawn,          TERMCMD("earthquake") },
-	{ MODKEY|ControlMask,           XK_b,      spawn,          SHCMD("uzbl-browser") },
+	{ MODKEY|ControlMask,           XK_b,      spawn,          SHCMD("surf") },
 	{ MODKEY|ControlMask,           XK_c,      spawn,          SHCMD("mpc prev") },
 	{ MODKEY|ControlMask,           XK_v,      spawn,          SHCMD("mpc next") },
 	{ MODKEY|ControlMask,           XK_x,      spawn,          SHCMD("mpc stop") },
